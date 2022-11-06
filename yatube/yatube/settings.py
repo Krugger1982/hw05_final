@@ -146,7 +146,7 @@ LOGIN_REDIRECT_URL = 'posts:index'
 # LOGOUT_REDIRECT_URL = 'posts:index'
 PASSWORD_RESET_FORM_REDIRECT_URL = 'users:password_reset_done'
 
-# Константа для работы кастомных страниц ошибок
+# Константа для работы кастомной страницы ошибки csrf
 CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
 
 #  подключаем движок filebased.EmailBackend

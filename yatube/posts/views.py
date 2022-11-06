@@ -119,13 +119,11 @@ def add_comment(request, post_id):
 def follow_index(request):
     """ Представляет страницу со списком постов всех авторов,
         на которых подписан текущий пользователь"""
-    follows = request.user.following.all()
-    followed_posts = []
-    for follow in follows:
-        followed_posts += list(follow.author.posts.all())
-    # Весь набор постов для ленты должен быть отсортирован по дате
-    # от свежих постов к более старым
-    followed_posts.sort(key=lambda post: post.pub_date, reverse=True)
+    followed_posts = (
+        Post.objects.filter(
+            author__following__user=request.user
+        )
+    )
     page_obj = get_page_from_paginator(followed_posts, request)
     context = {'page_obj': page_obj}
     return render(request, 'posts/follow.html', context)
@@ -135,9 +133,10 @@ def follow_index(request):
 def profile_follow(request, username):
     """ Функция реализует возможность подписаться на автора."""
     author = get_object_or_404(User, username=username)
-    # Если подписка уже есть, повторный запрос на подписку
-    # будет проигнорирован
-    Follow.objects.get_or_create(user=request.user, author=author)
+    if author != request.user:
+        # Если подписка уже есть, или пользователь рассматривает свою страницу
+        # тогда запрос на подписку будет проигнорирован
+        Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('posts:profile', username)
 
 
