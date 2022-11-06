@@ -37,9 +37,12 @@ class PostViewsTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        # так как среди прочих тестируется страница index, нужно чистить кэш
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
+        """Проверяет что страница по данному URL-адресу
+            использует соответствующий шаблон."""
         templates_page_names = {
             'posts/index.html': reverse('posts:index'),
             'posts/group_list.html': reverse(
@@ -63,7 +66,8 @@ class PostViewsTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_post_detail_page_show_correct_context(self):
-        """Шаблон post_detail сформирован с правильным контекстом."""
+        """Проверяет, что шаблон post_detail сформирован
+            с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id})
         )
@@ -94,16 +98,19 @@ class PostViewsBigPagesTest(TestCase):
             slug='test-slug',
             description='Тестовое описание'
         )
+        posts = []
         for i in range(NUMBER_OF_PAGINATED_POSTS):
-            cls.post = Post.objects.create(
+            posts.append(Post(
                 author=cls.user,
                 text=f'Тестовый пост № {i+1} для проверки',
                 group=cls.group,
-            )
+            ))
+        cls.post = Post.objects.bulk_create(posts)
 
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_context_and_paginator_index_page(self):
         """ Шаблон главной страницы (с многими постами) сформирован
@@ -129,7 +136,8 @@ class PostViewsBigPagesTest(TestCase):
                 len(response.context['page_obj'].object_list),
                 settings.PAGINATION_COUNT
             )
-            # вызываем вторую "пачку" постов
+            # вызываем вторую "пачку" постов, перед этим почистим кэш
+            cache.clear()
             response = self.authorized_client.get(
                 reverse('posts:index') + '/?page=2',
                 kwargs=keyw
@@ -159,6 +167,7 @@ class PostViewsCreationEditionTest(TestCase):
         self.authorised_client.force_login(self.user1)
         self.author_client = Client()
         self.author_client.force_login(self.user2)
+        cache.clear()
 
     def test_creating_post(self):
         """Проверка работы механизма создания поста ."""
@@ -276,6 +285,7 @@ class PostViewsPictureTest(TestCase):
     def setUp(self):
         self.authorised_client = Client()
         self.authorised_client.force_login(self.user)
+        cache.clear()
         # это тестовая картинка
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
@@ -301,7 +311,6 @@ class PostViewsPictureTest(TestCase):
 
     def test_creating_post_contents_picture(self):
         """Проверка как работает вызов поста с картинкой."""
-
         # проверяем как он отображается в словаре context разных страниц.
         # на странице с подробным описанием одного поста
         post = Post.objects.latest('id')
@@ -326,6 +335,8 @@ class PostViewsPictureTest(TestCase):
 
 
 class PostViewsCommentsTest(TestCase):
+    """ Класс проверяет реботу механизма добавления и отображения
+        комментариев к постам."""
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -356,6 +367,7 @@ class PostViewsCommentsTest(TestCase):
 
 
 class PostTemlatesCacheTest(TestCase):
+    """ Класс проверяет как работает кэширование информации."""
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -394,6 +406,8 @@ class PostTemlatesCacheTest(TestCase):
 
 
 class PostViewFollowTest(TestCase):
+    """ Класс тестов которые проверяют создание и отображение
+        связей подписка-подписчик"""
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -409,7 +423,9 @@ class PostViewFollowTest(TestCase):
         self.authorised_client.force_login(self.user1)
 
     def test_authorised_user_can_follow(self):
-        # В начале - отсутствует запись в таблице Follow
+        """Авторизованный пользователь может может подписываться
+        на других пользователей и удалять их из подписок"""
+        # В начале - должна отсутствовать запись в таблице Follow
         self.assertFalse(
             Follow.objects.filter(
                 user=self.user1,
@@ -436,6 +452,8 @@ class PostViewFollowTest(TestCase):
         self.assertIn(self.post, response.context['page_obj'].object_list)
 
     def test_authorised_following_user_can_unfollow(self):
+        """ Авторизованный пользователь может удалять
+            других пользователей из своих подписок."""
         # Создается изначальная связь в таблице Follow
         Follow.objects.get_or_create(
             user=self.user1,
@@ -447,6 +465,7 @@ class PostViewFollowTest(TestCase):
                 kwargs={'username': 'post_author'}
             )
         )
+        # Проверка - связь в таблице Follow исчезла.
         self.assertFalse(
             Follow.objects.filter(
                 user=self.user1,

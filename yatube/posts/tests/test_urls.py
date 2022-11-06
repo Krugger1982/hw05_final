@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 
 from posts.models import Group, Post
@@ -32,9 +33,9 @@ class PostUrlsTests(TestCase):
         # клиент для подключения автора
         self.author_client = Client()
         self.author_client.force_login(PostUrlsTests.user2)
+        cache.clear()
 
     # Тестируем доступность страниц разным пользователям
-
     def test_available_pages_for_anonim_user(self):
         """ Страницы которые доступны неавторизованному пользователю"""
         pages_statuses = {
@@ -92,7 +93,7 @@ class PostUrlsTests(TestCase):
     #  Проверка вызываемых HTML-шаблонов
 
     def test_posts_urls_use_correct_templates(self):
-        """Страница по адресу использует правильный шаблон."""
+        """Страница по соответствующему адресу использует правильный шаблон."""
         template_names = {
             '/': 'posts/index.html',
             f'/group/{self.group.slug}/': 'posts/group_list.html',
