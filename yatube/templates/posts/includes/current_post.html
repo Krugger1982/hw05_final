@@ -1,0 +1,21 @@
+{% load thumbnail %}
+<article>
+  <ul>
+    <li>Автор: {{ post.author.get_full_name }}</li>
+    <li>Дата публикации: {{ post.pub_date|date:"d E Y" }}</li>
+  </ul>
+  <div style="padding-left: 30px;  padding-right: 0px;">
+    <div class="col-md-8">
+      {% thumbnail post.image "900x550" crop="center" upscale=True as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
+    </div>
+    <p>{{ post }}</p>    
+    {% if post.group %}  
+      Группа "{{ post.group }}"
+      <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
+    {% endif %} 
+    <br>
+    <a href="{% url 'posts:post_detail' post.id %}">подробная информация </a>
+  </div>
+</article>
