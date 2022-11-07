@@ -26,6 +26,8 @@ SECRET_KEY = 'q_v)gqgeqk!i&5^b14q!(qg8k+bz6e=ifaa-e^a!_(n!rk)(+x'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    'www.krugger.pythonanywhere.com',
+    'krugger.pythonanywhere.com',
     'localhost',
     '127.0.0.1',
     '[::1]',
@@ -49,10 +51,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Приложение staticfiles необходимо для работы приложения DjDT
     'django.contrib.staticfiles',
+    'debug_toolbar',
     # приложение для работы с графическими структурами
     'sorl.thumbnail',
-
 ]
 
 MIDDLEWARE = [
@@ -63,6 +66,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'yatube.urls'
