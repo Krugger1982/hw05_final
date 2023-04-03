@@ -43,7 +43,7 @@ $ python3 -m venv venv
 
 
 # Запуск сервера на локальной машине 
-В папке Django_project/yatube/ выполните команду запуска сервера:  
+В папке hw05_final/yatube/ выполните команду запуска сервера:  
 
 ```$ python3 manage.py runserver ```  
 
